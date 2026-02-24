@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peptide Helix Analysis Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ffffff;
+            color: #2c3e50;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #e0e0e0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: #34495e;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            transition: border-color 0.3s;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .hint {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-top: 8px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: 500;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .btn-secondary:hover {
+            background-color: #bdc3c7;
+        }
+
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+        }
+
+        .analysis-summary {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #3498db;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            font-weight: 500;
+            color: #34495e;
+        }
+
+        .summary-value {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .image-card {
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .image-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .image-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .image-container canvas {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .download-btn:hover {
+            background-color: #229954;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .consensus {
+            background: #e8f5e9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #27ae60;
+        }
+
+        .consensus.warning {
+            background: #fff3e0;
+            border-left-color: #ff9800;
+        }
+
+        .consensus.negative {
+            background: #ffebee;
+            border-left-color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Peptide Helix Analysis Tool</h1>
+        <p class="subtitle">Analyze α-helix formation potential using Chou-Fasman and GOR IV methods</p>
+
+        <div class="input-section">
+            <label for="sequence">Enter Peptide Sequence:</label>
+            <input 
+                type="text" 
+                id="sequence" 
+                value="DKASDAWDSAK" 
+                maxlength="100"
+            >
+            <p class="hint">Enter amino acid sequence using single-letter codes (A-Z). Maximum 100 residues.</p>
+            
+            <div class="button-group">
+                <button class="btn-primary" onclick="analyzeSequence()">Analyze</button>
+                <button class="btn-secondary" onclick="clearResults()">Clear</button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing sequence...</p>
+        </div>
+
+        <div class="results" id="results">
+            <div class="analysis-summary" id="summary"></div>
+            
+            <div class="image-grid">
+                <div class="image-card">
+                    <h3>1. Helical Wheel Projection</h3>
+                    <div class="image-container">
+                        <canvas id="canvas1"></canvas>
+                    </div>
+                    <button class="download-btn" onclick="downloadImage('canvas1', 'helical_wheel')">
+                        Download Image
+                    </button>
+                </div>
+
+                <div class="image-card">
+                    <h3>2. Chou-Fasman Helix Propensity</h3>
+                    <div class="image-container">
+                        <canvas id="canvas2"></canvas>
+                    </div>
+                    <button class="download-btn" onclick="downloadImage('canvas2', 'chou_fasman')">
+                        Download Image
+                    </button>
+                </div>
+
+                <div class="image-card">
+                    <h3>3. GOR IV Secondary Structure Prediction</h3>
+                    <div class="image-container">
+                        <canvas id="canvas3"></canvas>
+                    </div>
+                    <button class="download-btn" onclick="downloadImage('canvas3', 'gor_prediction')">
+                        Download Image
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Peptide Helix Analysis Tool | Based on Chou-Fasman and GOR IV algorithms</p>
+        </div>
+    </div>
+
+    <script>
+        // Amino acid properties
+        const aminoAcidProperties = {
+            Hydrophobic: ['A', 'V', 'L', 'I', 'M', 'F', 'Y', 'W'],
+            Hydrophilic: ['S', 'T', 'N', 'Q'],
+            Positive_Charge: ['K', 'R', 'H'],
+            Negative_charge: ['D', 'E'],
+            Special: ['P', 'G', 'C']
+        };
+
+        const colors = {
+            Hydrophobic: '#F5D76E',
+            Hydrophilic: '#74B9FF',
+            Positive_Charge: '#A29BFE',
+            Negative_charge: '#FF7675',
+            Special: '#B2BEC3',
+            Unknown: '#CCCCCC'
+        };
+
+        // Chou-Fasman helix propensity
+        const helixPropensity = {
+            'A': 1.42, 'C': 0.70, 'D': 1.01, 'E': 1.51, 'F': 1.13,
+            'G': 0.57, 'H': 1.00, 'I': 1.08, 'K': 1.16, 'L': 1.21,
+            'M': 1.45, 'N': 0.67, 'P': 0.57, 'Q': 1.11, 'R': 0.98,
+            'S': 0.77, 'T': 0.83, 'V': 1.06, 'W': 1.08, 'Y': 0.69
+        };
+
+        // GOR IV parameters
+        const gorParams = {
+            H: { 0: {'A': 0.06, 'C': -0.09, 'D': -0.07, 'E': 0.09, 'F': 0.03, 'G': -0.19, 'H': 0.02, 'I': 0.02, 'K': 0.04, 'L': 0.10, 'M': 0.07, 'N': -0.09, 'P': -0.16, 'Q': 0.04, 'R': 0.02, 'S': -0.06, 'T': -0.04, 'V': -0.01, 'W': 0.02, 'Y': 0.00}},
+            E: { 0: {'A': -0.04, 'C': 0.08, 'D': -0.09, 'E': -0.15, 'F': 0.08, 'G': -0.19, 'H': -0.02, 'I': 0.09, 'K': -0.08, 'L': 0.06, 'M': 0.03, 'N': -0.03, 'P': -0.21, 'Q': -0.04, 'R': -0.08, 'S': 0.00, 'T': 0.06, 'V': 0.09, 'W': 0.05, 'Y': 0.07}},
+            C: { 0: {'A': -0.02, 'C': 0.01, 'D': 0.16, 'E': 0.06, 'F': -0.11, 'G': 0.38, 'H': 0.00, 'I': -0.11, 'K': 0.04, 'L': -0.16, 'M': -0.10, 'N': 0.12, 'P': 0.37, 'Q': 0.00, 'R': 0.06, 'S': 0.06, 'T': -0.02, 'V': -0.08, 'W': -0.07, 'Y': -0.07}}
+        };
+
+        function getAAColor(aa) {
+            for (let prop in aminoAcidProperties) {
+                if (aminoAcidProperties[prop].includes(aa)) {
+                    return colors[prop];
+                }
+            }
+            return colors.Unknown;
+        }
+
+        function calculateChouFasman(sequence) {
+            const scores = sequence.split('').map(aa => helixPropensity[aa] || 1.0);
+            const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+            
+            const formers = scores.filter(s => s > 1.0).length;
+            const breakers = scores.filter(s => s < 1.0).length;
+            
+            let maxContinuous = 0;
+            let currentContinuous = 0;
+            
+            scores.forEach(score => {
+                if (score > 1.0) {
+                    currentContinuous++;
+                    maxContinuous = Math.max(maxContinuous, currentContinuous);
+                } else {
+                    currentContinuous = 0;
+                }
+            });
+            
+            const continuityBonus = maxContinuous >= 4 ? 0.2 * (maxContinuous / sequence.length) : 0;
+            const stability = avgScore * (1 + continuityBonus);
+            
+            return {
+                scores,
+                avgScore,
+                formers,
+                breakers,
+                stability,
+                maxContinuous
+            };
+        }
+
+        function predictGOR(sequence) {
+            const predictions = [];
+            const helixScores = [];
+            const sheetScores = [];
+            const coilScores = [];
+            
+            for (let i = 0; i < sequence.length; i++) {
+                const aa = sequence[i];
+                
+                const hScore = gorParams.H[0][aa] || 0;
+                const eScore = gorParams.E[0][aa] || 0;
+                const cScore = gorParams.C[0][aa] || 0;
+                
+                helixScores.push(hScore);
+                sheetScores.push(eScore);
+                coilScores.push(cScore);
+                
+                const maxScore = Math.max(hScore, eScore, cScore);
+                if (maxScore === hScore) predictions.push('H');
+                else if (maxScore === eScore) predictions.push('E');
+                else predictions.push('C');
+            }
+            
+            const helixPct = (predictions.filter(p => p === 'H').length / sequence.length) * 100;
+            const sheetPct = (predictions.filter(p => p === 'E').length / sequence.length) * 100;
+            const coilPct = (predictions.filter(p => p === 'C').length / sequence.length) * 100;
+            
+            return {
+                predictions,
+                helixScores,
+                sheetScores,
+                coilScores,
+                helixPct,
+                sheetPct,
+                coilPct
+            };
+        }
+
+        function drawHelicalWheel(canvas, sequence) {
+            const ctx = canvas.getContext('2d');
+            const size = 800;
+            canvas.width = size;
+            canvas.height = size;
+            
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, size, size);
+            
+            const centerX = size / 2;
+            const centerY = size / 2;
+            const baseRadius = 150;
+            const anglePerResidue = 100;
+            const circleRadius = 24.5;  // 35 * 0.7 = 24.5 (30% 축소)
+            
+            // Draw title
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = 'bold 28px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Helical Wheel: ${sequence}`, centerX, 40);
+            
+            // Draw legend
+            const legendX = size - 180;
+            const legendY = 80;
+            const legendItems = [
+                ['Hydrophobic', colors.Hydrophobic],
+                ['Hydrophilic', colors.Hydrophilic],
+                ['Positive Charge', colors.Positive_Charge],
+                ['Negative Charge', colors.Negative_charge],
+                ['Special', colors.Special]
+            ];
+            
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'left';
+            legendItems.forEach((item, idx) => {
+                const y = legendY + idx * 25;
+                ctx.fillStyle = item[1];
+                ctx.fillRect(legendX, y - 10, 20, 15);
+                ctx.strokeStyle = 'black';
+                ctx.strokeRect(legendX, y - 10, 20, 15);
+                ctx.fillStyle = '#2c3e50';
+                ctx.fillText(item[0], legendX + 25, y);
+            });
+            
+            const positions = [];
+            
+            // Draw amino acids
+            for (let i = 0; i < sequence.length; i++) {
+                const aa = sequence[i];
+                const angle = (i * anglePerResidue) * Math.PI / 180;
+                const x = centerX + baseRadius * Math.cos(angle);
+                const y = centerY + baseRadius * Math.sin(angle);
+                
+                positions.push({x, y});
+                
+                // Draw circle
+                ctx.fillStyle = getAAColor(aa);
+                ctx.beginPath();
+                ctx.arc(x, y, circleRadius, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Draw amino acid letter
+                ctx.fillStyle = 'black';
+                ctx.font = 'bold 28px Arial';  // 폰트도 약간 줄임
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(aa, x, y);
+                
+                // Draw position number
+                const labelDistance = circleRadius + 25;
+                const labelX = x + labelDistance * Math.cos(angle);
+                const labelY = y + labelDistance * Math.sin(angle);
+                ctx.font = '16px Arial';
+                ctx.fillStyle = '#666';
+                ctx.fillText((i + 1).toString(), labelX, labelY);
+            }
+            
+            // Draw connections
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 1.5;
+            ctx.globalAlpha = 0.6;
+            for (let i = 0; i < positions.length - 1; i++) {
+                ctx.beginPath();
+                ctx.moveTo(positions[i].x, positions[i].y);
+                ctx.lineTo(positions[i + 1].x, positions[i + 1].y);
+                ctx.stroke();
+            }
+            ctx.globalAlpha = 1.0;
+        }
+
+        function drawChouFasman(canvas, sequence, cfResult) {
+            const ctx = canvas.getContext('2d');
+            const width = 1000;
+            const height = 500;
+            canvas.width = width;
+            canvas.height = height;
+            
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Title
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Chou-Fasman Helix Propensity: ${sequence}`, width / 2, 35);
+            
+            // Chart area
+            const chartLeft = 100;  // 80에서 100으로 증가 (neutral 라벨 공간 확보)
+            const chartRight = width - 50;
+            const chartTop = 80;
+            const chartBottom = height - 80;
+            const chartWidth = chartRight - chartLeft;
+            const chartHeight = chartBottom - chartTop;
+            
+            // Draw grid FIRST (뒤로 보내기)
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const y = chartBottom - (i / 5) * chartHeight;
+                ctx.beginPath();
+                ctx.moveTo(chartLeft, y);
+                ctx.lineTo(chartRight, y);
+                ctx.stroke();
+                
+                const value = 0.5 + (i / 5) * 1.1;
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#7f8c8d';
+                ctx.fillText(value.toFixed(1), chartLeft - 10, y + 5);
+            }
+            
+            // Draw axes
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(chartLeft, chartBottom);
+            ctx.lineTo(chartRight, chartBottom);
+            ctx.lineTo(chartRight, chartTop);
+            ctx.stroke();
+            
+            // Y-axis label
+            ctx.save();
+            ctx.translate(30, (chartTop + chartBottom) / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillText('Helix Propensity', 0, 0);
+            ctx.restore();
+            
+            // X-axis label
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Residue Position', (chartLeft + chartRight) / 2, height - 20);
+            
+            // Draw neutral line (격자선 위에, 바 아래에)
+            const neutralY = chartBottom - (1.0 - 0.5) / (1.6 - 0.5) * chartHeight;
+            ctx.strokeStyle = '#34495e';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(chartLeft, neutralY);
+            ctx.lineTo(chartRight, neutralY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Neutral label (위치 수정)
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#34495e';
+            ctx.fillText('Neutral (1.0)', chartLeft - 10, neutralY + 5);
+            
+            // Draw bars (맨 위에)
+            const barWidth = chartWidth / sequence.length * 0.8;
+            const barSpacing = chartWidth / sequence.length;
+            
+            cfResult.scores.forEach((score, i) => {
+                const x = chartLeft + i * barSpacing + barSpacing / 2 - barWidth / 2;
+                const barHeight = ((score - 0.5) / (1.6 - 0.5)) * chartHeight;
+                const y = chartBottom - barHeight;
+                
+                ctx.fillStyle = score > 1.0 ? '#27ae60' : '#e74c3c';
+                ctx.globalAlpha = 0.7;
+                ctx.fillRect(x, Math.min(y, neutralY), barWidth, Math.abs(barHeight));
+                ctx.globalAlpha = 1.0;
+                
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 0.5;
+                ctx.strokeRect(x, Math.min(y, neutralY), barWidth, Math.abs(barHeight));
+            });
+        }
+
+        function drawGOR(canvas, sequence, gorResult) {
+            const ctx = canvas.getContext('2d');
+            const width = 1000;
+            const height = 500;
+            canvas.width = width;
+            canvas.height = height;
+            
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Title
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`GOR IV Secondary Structure Prediction: ${sequence}`, width / 2, 35);
+            
+            // Chart area
+            const chartLeft = 80;
+            const chartRight = width - 50;
+            const chartTop = 100;
+            const chartBottom = height - 80;
+            const chartWidth = chartRight - chartLeft;
+            const chartHeight = chartBottom - chartTop;
+            
+            // Draw axes
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(chartLeft, chartBottom);
+            ctx.lineTo(chartRight, chartBottom);
+            ctx.lineTo(chartRight, chartTop);
+            ctx.stroke();
+            
+            // Y-axis label
+            ctx.save();
+            ctx.translate(30, (chartTop + chartBottom) / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillText('Information Value', 0, 0);
+            ctx.restore();
+            
+            // X-axis label
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Residue Position', (chartLeft + chartRight) / 2, height - 20);
+            
+            // Draw zero line
+            const zeroY = chartTop + chartHeight / 2;
+            ctx.strokeStyle = '#34495e';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(chartLeft, zeroY);
+            ctx.lineTo(chartRight, zeroY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Plot lines (모두 circle로 통일)
+            const plotLine = (scores, color, label) => {
+                ctx.strokeStyle = color;
+                ctx.fillStyle = color;
+                ctx.lineWidth = 2.5;
+                ctx.globalAlpha = 0.85;
+                
+                ctx.beginPath();
+                scores.forEach((score, i) => {
+                    const x = chartLeft + (i / (scores.length - 1)) * chartWidth;
+                    const y = zeroY - (score * chartHeight / 0.8);
+                    
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+                
+                // Draw circle markers (모두 동일)
+                scores.forEach((score, i) => {
+                    const x = chartLeft + (i / (scores.length - 1)) * chartWidth;
+                    const y = zeroY - (score * chartHeight / 0.8);
+                    
+                    ctx.beginPath();
+                    ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                    ctx.fill();
+                });
+                
+                ctx.globalAlpha = 1.0;
+            };
+            
+            plotLine(gorResult.helixScores, '#e74c3c', 'Helix');
+            plotLine(gorResult.sheetScores, '#3498db', 'Sheet');
+            plotLine(gorResult.coilScores, '#95a5a6', 'Coil');
+            
+            // Legend (H, E, C 제거)
+            const legendX = chartRight - 120;
+            const legendY = chartTop + 20;
+            const legends = [
+                ['Helix', '#e74c3c'],
+                ['Sheet', '#3498db'],
+                ['Coil', '#95a5a6']
+            ];
+            
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'left';
+            legends.forEach((item, idx) => {
+                const y = legendY + idx * 25;
+                ctx.fillStyle = item[1];
+                
+                // Circle for all
+                ctx.beginPath();
+                ctx.arc(legendX, y, 5, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                ctx.fillStyle = '#2c3e50';
+                ctx.fillText(item[0], legendX + 15, y + 5);
+            });
+        }
+
+        function analyzeSequence() {
+            const sequence = document.getElementById('sequence').value.toUpperCase().trim();
+            
+            // Validation
+            if (!sequence) {
+                alert('Please enter a peptide sequence');
+                return;
+            }
+            
+            const validAA = /^[ACDEFGHIKLMNPQRSTVWY]+$/;
+            if (!validAA.test(sequence)) {
+                alert('Invalid amino acid sequence. Please use only standard amino acid codes (A-Z).');
+                return;
+            }
+            
+            if (sequence.length < 3) {
+                alert('Sequence too short. Please enter at least 3 amino acids.');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            
+            // Simulate processing delay
+            setTimeout(() => {
+                // Perform analysis
+                const cfResult = calculateChouFasman(sequence);
+                const gorResult = predictGOR(sequence);
+                
+                // Display summary
+                displaySummary(sequence, cfResult, gorResult);
+                
+                // Draw images
+                drawHelicalWheel(document.getElementById('canvas1'), sequence);
+                drawChouFasman(document.getElementById('canvas2'), sequence, cfResult);
+                drawGOR(document.getElementById('canvas3'), sequence, gorResult);
+                
+                // Show results
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('results').style.display = 'block';
+                
+                // Scroll to results
+                document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+            }, 500);
+        }
+
+        function displaySummary(sequence, cfResult, gorResult) {
+            const summaryDiv = document.getElementById('summary');
+            
+            let interpretation = '';
+            let consensusClass = 'consensus';
+            
+            const cfFavorable = cfResult.stability > 1.0;
+            const gorFavorable = gorResult.helixPct > 40;
+            const favorableCount = [cfFavorable, gorFavorable].filter(Boolean).length;
+            
+            if (favorableCount === 2) {
+                interpretation = '✓ High probability of forming stable α-helix structure';
+                consensusClass = 'consensus';
+            } else if (favorableCount === 1) {
+                interpretation = '~ Moderate helix formation potential. Partial helix structure may form';
+                consensusClass = 'consensus warning';
+            } else {
+                interpretation = '✗ Low helix formation probability. Likely to adopt random coil structure';
+                consensusClass = 'consensus negative';
+            }
+            
+            summaryDiv.innerHTML = `
+                <h2 style="margin-bottom: 20px; color: #2c3e50;">Analysis Summary</h2>
+                
+                <div class="summary-item">
+                    <span class="summary-label">Sequence:</span>
+                    <span class="summary-value" style="font-family: 'Courier New', monospace; letter-spacing: 2px;">${sequence}</span>
+                </div>
+                
+                <div class="summary-item">
+                    <span class="summary-label">Length:</span>
+                    <span class="summary-value">${sequence.length} residues</span>
+                </div>
+                
+                <div class="summary-item">
+                    <span class="summary-label">Chou-Fasman Stability Score:</span>
+                    <span class="summary-value">${cfResult.stability.toFixed(3)}</span>
+                </div>
+                
+                <div class="summary-item">
+                    <span class="summary-label">GOR Helix Prediction:</span>
+                    <span class="summary-value">${gorResult.helixPct.toFixed(1)}%</span>
+                </div>
+                
+                <div class="summary-item">
+                    <span class="summary-label">GOR Sheet Prediction:</span>
+                    <span class="summary-value">${gorResult.sheetPct.toFixed(1)}%</span>
+                </div>
+                
+                <div class="summary-item">
+                    <span class="summary-label">GOR Coil Prediction:</span>
+                    <span class="summary-value">${gorResult.coilPct.toFixed(1)}%</span>
+                </div>
+                
+                <div class="${consensusClass}" style="margin-top: 20px;">
+                    <strong style="font-size: 1.1em;">Consensus Assessment:</strong><br>
+                    ${interpretation}
+                </div>
+            `;
+        }
+
+        function downloadImage(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            const sequence = document.getElementById('sequence').value.toUpperCase().trim();
+            const link = document.createElement('a');
+            link.download = `${filename}_${sequence.substring(0, 10)}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function clearResults() {
+            document.getElementById('sequence').value = '';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('sequence').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                analyzeSequence();
+            }
+        });
+    </script>
+</body>
+</html>
