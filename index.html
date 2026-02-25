@@ -1169,8 +1169,8 @@
             const muP_badge = pc.mu_P > 0.3 ? badge('Strong', 'badge-blue')
                             : pc.mu_P > 0.1 ? badge('Moderate', 'badge-orange')
                             : badge('Weak', 'badge-gray');
-            const FSI_badge = pc.FSI < -0.7 ? badge('Excellent (≈ −1)', 'badge-green')
-                            : pc.FSI < -0.3 ? badge('Moderate', 'badge-orange')
+            const FSI_badge = pc.FSI > 0.7 ? badge('Excellent (≈ +1)', 'badge-green')
+                            : pc.FSI > 0.3 ? badge('Moderate', 'badge-orange')
                             : badge('Poor', 'badge-red');
             // TS → 0 is ideal; |TS| < 0.15 = well-separated, |TS| > 0.5 = degenerate
             const TS_abs = Math.abs(pc.TS);
@@ -1189,7 +1189,7 @@
             const muP_pct  = Math.min(pc.mu_P / 0.5 * 100, 100).toFixed(1);
             const muPos_pct = Math.min(pc.mu_pos / 0.4 * 100, 100).toFixed(1);
             const muNeg_pct = Math.min(pc.mu_neg / 0.4 * 100, 100).toFixed(1);
-            const FSI_pct  = Math.min(((1 - pc.FSI) / 2) * 100, 100).toFixed(1);
+            const FSI_pct  = Math.min(((pc.FSI + 1) / 2) * 100, 100).toFixed(1);
             // TS bar: width based on |TS|, max 1.0
             const TS_pct   = Math.min(Math.abs(pc.TS) * 100, 100).toFixed(1);
 
@@ -1233,8 +1233,8 @@
             }
 
             grid.innerHTML = `
-            <!-- μH card -->
-            <div class="physchem-card wide">
+            <!-- μH card (top-left) -->
+            <div class="physchem-card">
                 <div class="card-title">HYDROPHOBIC MOMENT (${muH_title})</div>
                 <div class="card-ref">Eisenberg et al., <em>Nature</em>, 1982</div>
                 <div class="card-value">${pc.mu_H.toFixed(3)} <span class="unit">/ residue</span></div>
@@ -1255,8 +1255,8 @@
                 </div>
             </div>
 
-            <!-- μP card -->
-            <div class="physchem-card wide">
+            <!-- μP card (top-right) -->
+            <div class="physchem-card">
                 <div class="card-title">HYDROPHILIC MOMENT (<span class="math-sym">μ</span><span class="math-sub">P</span>)</div>
                 <div class="card-ref">Adapted from Eisenberg et al., <em>Nature</em>, 1982 &nbsp;&middot;&nbsp; hydrophilic residues only</div>
                 <div class="card-value">${pc.mu_P.toFixed(3)} <span class="unit">/ residue</span></div>
@@ -1297,46 +1297,8 @@
                 </div>
             </div>
 
-            <!-- μPos card (wide) -->
-            <div class="physchem-card wide">
-                <div class="card-title">POSITIVE CHARGE MOMENT (<span class="math-sym">μ</span><span class="math-sub">Pos</span>)</div>
-                <div class="card-ref">K/R residues only &nbsp;&middot;&nbsp; unweighted vector sum of cationic positions</div>
-                <div class="card-value">${pc.mu_pos.toFixed(3)} <span class="unit">/ residue</span></div>
-                ${pc.mu_pos > 0.15 ? badge('Segregated', 'badge-blue') : pc.mu_pos > 0.07 ? badge('Partial', 'badge-orange') : badge('Dispersed', 'badge-gray')}
-                <div class="moment-bar-wrap">
-                    <div class="moment-bar-bg">
-                        <div class="moment-bar-fill" style="width:${muPos_pct}%; background:#2980b9;"></div>
-                    </div>
-                    <span class="angle-badge">Direction: ${pc.mu_pos_angle.toFixed(1)}°</span>
-                </div>
-                <div class="card-formula">
-                    <div style="font-family:'Times New Roman',serif;font-style:italic;font-size:0.95em;line-height:2.4;display:flex;align-items:center;gap:3px;flex-wrap:wrap;padding:2px 0;">
-                        <span>|${MU}<span style="font-size:0.72em;vertical-align:sub;">Pos</span>|</span>
-                        <span style="font-style:normal;margin:0 2px;">=</span>
-                        <span style="display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 2px;">
-                            <span style="border-bottom:1.5px solid #34495e;padding:0 3px;font-size:0.82em;line-height:1.5;font-style:normal;">1</span>
-                            <span style="padding:0 3px;font-size:0.82em;line-height:1.5;font-style:italic;">N</span>
-                        </span>
-                        <span style="display:inline-flex;align-items:center;vertical-align:middle;">
-                            <span style="font-size:1.9em;line-height:1;margin-right:1px;font-style:normal;">√</span>
-                            <span style="border-top:1.5px solid #34495e;padding:2px 4px;font-size:0.88em;white-space:nowrap;">
-                                <span style="font-style:normal;">(</span>${SIGMA}<span style="font-size:0.65em;vertical-align:super;font-style:normal;">K,R</span>
-                                cos(${DELTA}n)<span style="font-style:normal;">)<span style="font-size:0.7em;vertical-align:super;">2</span>
-                                &thinsp;+&thinsp;(</span>${SIGMA}<span style="font-size:0.65em;vertical-align:super;font-style:normal;">K,R</span>
-                                sin(${DELTA}n)<span style="font-style:normal;">)<span style="font-size:0.7em;vertical-align:super;">2</span></span>
-                            </span>
-                        </span>
-                    </div>
-                    <span class="formula-legend">
-                        Sum over K/R positions only (each contributes weight = 1) &nbsp;|&nbsp;
-                        High ${MU}<span style="font-size:0.8em;vertical-align:sub;">Pos</span> → K/R residues clustered on one face &nbsp;|&nbsp;
-                        ${DELTA} = ${pc.delta}°/residue &nbsp;|&nbsp; N = ${seq.length}
-                    </span>
-                </div>
-            </div>
-
-            <!-- μNeg card (wide) -->
-            <div class="physchem-card wide">
+            <!-- μNeg card (bottom-left) -->
+            <div class="physchem-card">
                 <div class="card-title">NEGATIVE CHARGE MOMENT (<span class="math-sym">μ</span><span class="math-sub">Neg</span>)</div>
                 <div class="card-ref">D/E residues only &nbsp;&middot;&nbsp; unweighted vector sum of anionic positions</div>
                 <div class="card-value">${pc.mu_neg.toFixed(3)} <span class="unit">/ residue</span></div>
@@ -1373,6 +1335,44 @@
                 </div>
             </div>
 
+            <!-- μPos card (bottom-right) -->
+            <div class="physchem-card">
+                <div class="card-title">POSITIVE CHARGE MOMENT (<span class="math-sym">μ</span><span class="math-sub">Pos</span>)</div>
+                <div class="card-ref">K/R residues only &nbsp;&middot;&nbsp; unweighted vector sum of cationic positions</div>
+                <div class="card-value">${pc.mu_pos.toFixed(3)} <span class="unit">/ residue</span></div>
+                ${pc.mu_pos > 0.15 ? badge('Segregated', 'badge-blue') : pc.mu_pos > 0.07 ? badge('Partial', 'badge-orange') : badge('Dispersed', 'badge-gray')}
+                <div class="moment-bar-wrap">
+                    <div class="moment-bar-bg">
+                        <div class="moment-bar-fill" style="width:${muPos_pct}%; background:#2980b9;"></div>
+                    </div>
+                    <span class="angle-badge">Direction: ${pc.mu_pos_angle.toFixed(1)}°</span>
+                </div>
+                <div class="card-formula">
+                    <div style="font-family:'Times New Roman',serif;font-style:italic;font-size:0.95em;line-height:2.4;display:flex;align-items:center;gap:3px;flex-wrap:wrap;padding:2px 0;">
+                        <span>|${MU}<span style="font-size:0.72em;vertical-align:sub;">Pos</span>|</span>
+                        <span style="font-style:normal;margin:0 2px;">=</span>
+                        <span style="display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 2px;">
+                            <span style="border-bottom:1.5px solid #34495e;padding:0 3px;font-size:0.82em;line-height:1.5;font-style:normal;">1</span>
+                            <span style="padding:0 3px;font-size:0.82em;line-height:1.5;font-style:italic;">N</span>
+                        </span>
+                        <span style="display:inline-flex;align-items:center;vertical-align:middle;">
+                            <span style="font-size:1.9em;line-height:1;margin-right:1px;font-style:normal;">√</span>
+                            <span style="border-top:1.5px solid #34495e;padding:2px 4px;font-size:0.88em;white-space:nowrap;">
+                                <span style="font-style:normal;">(</span>${SIGMA}<span style="font-size:0.65em;vertical-align:super;font-style:normal;">K,R</span>
+                                cos(${DELTA}n)<span style="font-style:normal;">)<span style="font-size:0.7em;vertical-align:super;">2</span>
+                                &thinsp;+&thinsp;(</span>${SIGMA}<span style="font-size:0.65em;vertical-align:super;font-style:normal;">K,R</span>
+                                sin(${DELTA}n)<span style="font-style:normal;">)<span style="font-size:0.7em;vertical-align:super;">2</span></span>
+                            </span>
+                        </span>
+                    </div>
+                    <span class="formula-legend">
+                        Sum over K/R positions only (each contributes weight = 1) &nbsp;|&nbsp;
+                        High ${MU}<span style="font-size:0.8em;vertical-align:sub;">Pos</span> → K/R residues clustered on one face &nbsp;|&nbsp;
+                        ${DELTA} = ${pc.delta}°/residue &nbsp;|&nbsp; N = ${seq.length}
+                    </span>
+                </div>
+            </div>
+
             <!-- FSI card (wide) -->
             <div class="physchem-card wide">
                 <div class="card-title">FACE SEPARATION INDEX (FSI)</div>
@@ -1380,11 +1380,11 @@
                 <div class="card-value">${pc.FSI.toFixed(3)}</div>
                 ${FSI_badge}
                 <div class="moment-bar-wrap">
-                    <span style="font-size:0.72em;color:#7f8c8d;white-space:nowrap;">+1 (same face)</span>
+                    <span style="font-size:0.72em;color:#7f8c8d;white-space:nowrap;">&minus;1 (opposite)</span>
                     <div class="moment-bar-bg">
                         <div class="moment-bar-fill" style="width:${FSI_pct}%; background:#27ae60;"></div>
                     </div>
-                    <span style="font-size:0.72em;color:#27ae60;white-space:nowrap;">&minus;1 (ideal)</span>
+                    <span style="font-size:0.72em;color:#27ae60;white-space:nowrap;">+1 (ideal)</span>
                 </div>
                 <div style="font-size:0.8em;color:#7f8c8d;margin-top:6px;">
                     ${muH} @ ${pc.mu_H_angle.toFixed(1)}° &nbsp;|&nbsp;
@@ -1397,8 +1397,8 @@
                         FSI = cos( θ<span style="font-size:0.65em;vertical-align:sub;font-style:normal;">${muH},&thinsp;&minus;${MU}<span style="font-size:0.65em;vertical-align:sub;font-family:'Times New Roman',serif;">Neg</span></span> )
                     </div>
                     <span class="formula-legend">
-                        FSI = &minus;1 → hydrophobic face is exactly opposite to D/E face → ideal 3-face amphipathic helix &nbsp;|&nbsp;
-                        FSI = +1 → hydrophobic face coincides with D/E face → unfavorable &nbsp;|&nbsp;
+                        FSI = +1 → μH and −μNeg point in the same direction → μH opposite to D/E face → ideal 3-face helix &nbsp;|&nbsp;
+                        FSI = −1 → μH coincides with D/E face → unfavorable &nbsp;|&nbsp;
                         FSI = 0 → faces are orthogonal (90°)
                     </span>
                 </div>
@@ -1416,8 +1416,8 @@
 
                     <!-- cos1 box -->
                     <div style="flex:1;min-width:190px;background:#f4f8fd;border:1.5px solid #bdd5ee;border-radius:8px;padding:12px 14px;">
-                        <div style="font-size:0.72em;font-weight:700;letter-spacing:0.05em;color:#2980b9;margin-bottom:6px;text-transform:uppercase;">
-                            cos θ (${muH},&thinsp;${MU}<span style="font-size:0.72em;vertical-align:sub;font-family:'Times New Roman',serif;font-style:italic;">Pos</span>)
+                        <div style="font-size:0.72em;font-weight:700;letter-spacing:0.05em;color:#2980b9;margin-bottom:6px;">
+                            COS θ (${muH},&thinsp;${MU}<span style="font-size:0.72em;vertical-align:sub;font-family:'Times New Roman',serif;font-style:italic;">Pos</span>)
                         </div>
                         <div style="font-size:1.45em;font-weight:700;color:${Math.abs(pc.cos_H_Pos)<0.2?'#27ae60':Math.abs(pc.cos_H_Pos)<0.55?'#e67e22':'#c0392b'};">
                             ${pc.cos_H_Pos >= 0 ? '+' : ''}${pc.cos_H_Pos.toFixed(4)}
@@ -1434,8 +1434,8 @@
 
                     <!-- cos2 box -->
                     <div style="flex:1;min-width:190px;background:#fdf4f7;border:1.5px solid #f0b8cb;border-radius:8px;padding:12px 14px;">
-                        <div style="font-size:0.72em;font-weight:700;letter-spacing:0.05em;color:#c0392b;margin-bottom:6px;text-transform:uppercase;">
-                            cos θ (${MU}<span style="font-size:0.72em;vertical-align:sub;font-family:'Times New Roman',serif;font-style:italic;">Neg</span>,&thinsp;${muP})
+                        <div style="font-size:0.72em;font-weight:700;letter-spacing:0.05em;color:#c0392b;margin-bottom:6px;">
+                            COS θ (${MU}<span style="font-size:0.72em;vertical-align:sub;font-family:'Times New Roman',serif;font-style:italic;">Neg</span>,&thinsp;${muP})
                         </div>
                         <div style="font-size:1.45em;font-weight:700;color:${Math.abs(pc.cos_Neg_P)<0.2?'#27ae60':Math.abs(pc.cos_Neg_P)<0.55?'#e67e22':'#c0392b'};">
                             ${pc.cos_Neg_P >= 0 ? '+' : ''}${pc.cos_Neg_P.toFixed(4)}
